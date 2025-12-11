@@ -1,0 +1,35 @@
+{
+    "movies": [
+        {
+            "category": "movie",
+            "name": "O Senhor dos Aneis: As Duas Torres",
+            "description": "Enquanto Frodo e Sam estão perto de Mordor com a ajuda de Gollum, a divida comunhão luta contra Saruman e os Isengards.",
+            "genre": "epic fantasy",
+            "duration": 179,
+            "price": 30.00,
+            "in_stock": 100
+        },
+        {
+            "category": "movie",
+            "name": "O Senhor dos Aneis: A Sociedade do Anel",
+            "description": "Um manso hobbit do Condado e oito companheiros partem em uma jornada para destruir o poderoso Um Anel e salvar a Terra-média das Trevas.",
+            "genre": "epic fantasy",
+            "duration": 178,
+            "price": 30.00,
+            "in_stock": 100
+        }
+    ],
+
+    "junkfood": [
+        {
+            "category": "junkfood",
+            "type": "Pipoca",
+            "price": 10.90
+        },
+        {
+            "category": "junkfood",
+            "type": "Refrigerante",
+            "price": 6.90
+        }
+    ]
+}
