@@ -1,188 +1,243 @@
-// O require é uma função nativa do js responsável por importar um arquivo ou função para o documento atual
-const data = require('./db/products.json') // Importamos o arquivo json e o salvamos em data
-const readline = require('readline') // Readline é um módulo de Node.js usado para lidar com input e output via terminal em aplicações JS
-// A ser apagado:
-//const { listMovies, movieDetails, movieCost, listSnacks, snacksCost } = require('./src/estruturado/functions')
+const readline = require('readline');
+const data = require('./db/products.json');
 
-// Refatoração do código para usar as classes
-const Cart = require('./src/OO/Cart')
-const CartItem = require('./src/OO/CartItem')
-const Snack = require('./src/OO/Snack')
-const Movie = require('./src/OO/Movie')
+const Cart = require('./src/OO/Cart');
+const CartItem = require('./src/OO/CartItem');
+const Snack = require('./src/OO/Snack');
+const Movie = require('./src/OO/Movie');
+const { CreditCardPayment, PixPayment } = require('./src/OO/Payment');
 
-// Percorre a lista de filmes e cria um objeto Movie com os dados de cada filme da lista
-const movies = data.movies.map(movie => new Movie(
-    movie.category,
-    movie.name,
-    movie.description,
-    movie.price,
-    movie.stock,
-    movie.genre,
-    movie.duration
-))
+const { filterByCriteria, isMovie, formatCatalogView } = require('./src/functions/catalogOperations');
 
-// Percorre a lista de lanches e cria um objeto Snack com os dados de cada lanche da lista
-const snacks = data.snacks.map(snack => new Snack(
-    snack.category,
-    snack.name,
-    snack.description,
-    snack.price,
-    snack.stock,
-    snack.type
-))
+const movies = data.movies.map(m => new Movie(
+    m.category, 
+    m.name, 
+    m.description, 
+    m.price, 
+    m.in_stock || m.stock, // O JSON tem variações (in_stock/stock), isso resolve
+    m.genre, 
+    m.duration
+));
 
-// Habilita as interações via terminal - NÃO MEXER
-const rl = readline.createInterface({
-    input: process.stdin, // define o teclado como input
-    output: process.stdout // define o terminal como saída
-})
+const snacks = data.snacks.map(s => new Snack(
+    s.category, 
+    s.type, // Passamos o 'type' (Pipoca) como 'name' para a classe pai
+    "Lanche delicioso do cinema", // Valor padrão para descrição
+    s.price, 
+    100, // Estoque padrão
+    s.type
+));
 
-// Instancia um novo carrinho assim que o programa inicia, para salvar os itens do usuário
-const myCart = new Cart()
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const myCart = new Cart();
+
+// --- Funções Auxiliares de Validação ---
+function isValidNumber(input, maxOption) {
+    const number = Number(input);
+    // Verifica se é NaN ou se está fora do intervalo permitido
+    return !isNaN(number) && number >= 0 && number <= maxOption;
+}
+
+// --- Fluxo Principal ---
 
 function showMainMenu() {
-    rl.question('[1] - Comprar Ingresso\n[0] Sair\n',
-        (option) => {
-            switch (Number(option)) {
-                case 1:
-                    listMovies()
-                    break;
-                case 0:
-                    rl.close()
-                    break;
-                default:
-                    showMainMenu()
-                    break;
-            }
+    console.log('\n--- CINE MULTI-PARADIGMA ---');
+    rl.question('[1] Comprar Ingresso\n[2] Consultar Catálogo (Filtro Funcional)\n[0] Sair\nOpção: ', (option) => {
+        const opt = Number(option);
+        
+        switch (opt) {
+            case 1:
+                listMovies();
+                break;
+            case 2:
+                showFilteredCatalog();
+                break;
+            case 0:
+                console.log("Saindo...");
+                rl.close();
+                break;
+            default:
+                console.log(">> Opção inválida. Tente novamente.");
+                showMainMenu();
         }
-    )
+    });
+}
+
+function showFilteredCatalog() {
+    const onlyMovies = filterByCriteria(movies, isMovie);
+    const formattedView = formatCatalogView(onlyMovies);
+    
+    console.log("\n--- Filmes Disponíveis (Filtrado Funcionalmente) ---");
+    formattedView.forEach(item => console.log(item.display));
+    
+    showMainMenu(); 
 }
 
 function listMovies() {
-    rl.question(`${movies.map((movie, current) => `[${current+1}] - ${movie.name}\n`, 0).join('')}\nEscolha o número do filme desejado ou 0 para sair: `, 
-    (inputMovie) => {
-        
-        if (inputMovie <= 0) {
-            rl.close()
-            return
+    const menu = movies.map((m, i) => `[${i + 1}] - ${m.name}`).join('\n');
+    
+    rl.question(`\n${menu}\nEscolha o filme ou 0 para voltar: `, (input) => {
+        // Validação rigorosa
+        if (!isValidNumber(input, movies.length)) {
+            console.log(">> Opção inválida. Digite um número da lista.");
+            return listMovies(); // Recursividade: pergunta de novo
         }
 
-        const selectedMovie = movies[inputMovie-1]
-        console.log(`\n\nVocê escolheu o filme ${selectedMovie.name}\n
-        ${selectedMovie.description}\n
-        ${selectedMovie.genre}\n
-        ${selectedMovie.duration} minutos\n
-        Assentos disponíveis: ${selectedMovie.stock}\n
-        Ingresso: R$${selectedMovie.price}`)
+        const index = Number(input) - 1;
+        if (index === -1) return showMainMenu(); // Opção 0 volta pro menu
 
-        selectSession(selectedMovie)
-    })
+        const selectedMovie = movies[index];
+        console.log(`\nSelecionado: ${selectedMovie.name} | R$ ${selectedMovie.price.toFixed(2)}`);
+        selectSession(selectedMovie);
+    });
 }
 
 function selectSession(movie) {
-    console.log(`Sessões disponíveis para ${movie.name}: \n`)
-    rl.question('[1] 15h00 - [2] 18h00 - [3] 21h00\n\nEscolha o número da sessão ou 0 para sair: ', 
-        (inputSession) => {
-            if (inputSession <= 0) {
-                rl.close()
-                return
-            }
-            const session = inputSession == 1 ? '15h00' : inputSession == 2 ? '18h00' : '21h00'
-            selectTickets(movie, session)
+    rl.question('\nSessões: [1] 15h00 [2] 18h00 [3] 21h00\nEscolha: ', (opt) => {
+        const sessions = { 1: '15h00', 2: '18h00', 3: '21h00' };
+        
+        // Validação de chave do objeto
+        if (!sessions[opt]) {
+            console.log(">> Sessão inválida.");
+            return selectSession(movie);
         }
-    )
+        
+        selectTickets(movie, sessions[opt]);
+    });
 }
 
 function selectTickets(movie, session) {
-    console.log(`Preço do ingresso: R$${movie.price}`)
-    rl.question('Informe ingressos você deseja ou 0 para sair: ',  
-        (tickets) => {
-            if (tickets <= 0) {
-                rl.close()
-                return
-            }
-
-            tickets = +tickets // O operador + na frente de uma variável que contémstring transforma-a em número
-            const movieSession = new CartItem(movie, tickets)
-            myCart.add(movieSession)
-
-            // para reduzir a quantidade de parâmetros nas chamadas seguintes empacotei todos estes em um Objeto
-            selectSnacks({movie, session, tickets})
-        }
-    )
-}
-
-function selectSnacks({movie, session, tickets}) {
-    rl.question(`${snacks.map((snack, current) => `[${current+1}] - ${snack.name}\n`, 0).join('')}\nEscolha o número do snack desejado ou 0 para sair: `, 
-    (inputSnack) => {
+    rl.question(`Quantos ingressos para a sessão das ${session}? `, (qtd) => {
+        const quantity = Number(qtd);
         
-        if (inputSnack <= 0) {
-            rl.close()
-            return
+        // Validar se é número positivo
+        if (isNaN(quantity) || quantity <= 0) {
+            console.log(">> Quantidade inválida.");
+            return selectTickets(movie, session);
         }
 
-        const selectedSnack = snacks[inputSnack-1]
-        console.log(`\n\nVocê escolheu ${selectedSnack.type}\n
-        R$${selectedSnack.price}`)
-
-        selectSnackQuantity({movie, session, tickets}, selectedSnack)
-    })
+        myCart.add(new CartItem(movie, quantity));
+        offerSnacks(); 
+    });
 }
 
-function selectSnackQuantity({movie, session, tickets}, snack) {
-    rl.question(`Quantas unidades de ${snack.type} você quer?`, 
-        (snackQuantity) => {
-            if (snackQuantity <= 0) {
-                checkout()
-                return
-            }
-            snackQuantity = +snackQuantity
-            const snackSession = new CartItem(snack, snackQuantity)
-            myCart.add(snackSession)
-            checkout({movie, session, tickets}, snack)
+function offerSnacks() {
+    rl.question('\nDeseja adicionar snacks? (S/N): ', (ans) => {
+        const resposta = ans.toUpperCase();
+        
+        if (resposta === 'S') {
+            listSnacks();
+        } else if (resposta === 'N') {
+            checkout();
+        } else {
+            console.log(">> Responda com S ou N.");
+            offerSnacks(); // Pergunta de novo se digitar errado
         }
-    )
+    });
 }
 
-function checkout(movie, snack) {
-
-}
-
-// rl.question(
-//     // 1. Escolhe o filme
-//     `${movies.map((movie, current) => `[${current+1}] - ${movie.name}\n`, 0).join('')}\nEscolha o número do filme desejado: `,
+function listSnacks() {
+    const menu = snacks.map((s, i) => `[${i + 1}] - ${s.name} (R$ ${s.price.toFixed(2)})`).join('\n');
     
-//     (inputMovie) => {
-//         // 2. Exibe detalhes do filme
-//         const selectedMovie = movies[inputMovie-1]
-//         console.log(`\n\nVocê escolheu o filme ${selectedMovie.name}\n
-//         ${selectedMovie.description}\n
-//         ${selectedMovie.genre}\n
-//         ${selectedMovie.duration} minutos\n
-//         Assentos disponíveis: ${selectedMovie.stock}\n
-//         Ingresso: R$${selectedMovie.price}`)
+    rl.question(`\n${menu}\nEscolha o snack ou 0 para finalizar: `, (input) => {
+        
+        // Validação no menu de snacks
+        if (!isValidNumber(input, snacks.length)) {
+            console.log(">> Opção inválida.");
+            return listSnacks();
+        }
 
-//         // 3. Pergunta a sessão
-//         rl.question(
+        const index = Number(input) - 1;
 
-//             '\nInforme o número da sessão desejada: ',
-//             (inputSession) => {
+        // Se digitou 0, vai para o checkout (finalizar)
+        if (index === -1) {
+            return checkout();
+        }
 
-//                 // 4. Pergunta a quantidade de ingressos
-//                 rl.question('\Ingresso: R$30,00 \nQuantos ingressos você deseja? ',
-//                     (inputTicket) => {
-//                         const movie = new CartItem(selectedMovie, inputTicket)
-//                         myCart.add(movie)
-//                         console.log(`\n=== TOTAL A PAGAR: R$ ${myCart.calculateTotal()} ===`)
-//                         console.log("Obrigado pela preferência!")
-                    
-//                         rl.close()
-//                 }
-//                 )
-//             }
-//         )
+        const selectedSnack = snacks[index];
+        
+        // Pergunta a quantidade do snack selecionado
+        rl.question(`Quantas unidades de ${selectedSnack.name}? `, (qtd) => {
+            const quantity = Number(qtd);
+            
+            if (isNaN(quantity) || quantity <= 0) {
+                console.log(">> Quantidade inválida.");
+                return listSnacks();
+            }
 
-//     }
-// )
+            myCart.add(new CartItem(selectedSnack, quantity));
+            console.log(`${quantity}x ${selectedSnack.name} adicionado!`);
+            
+            // Pergunta se quer MAIS snacks
+            offerSnacks();
+        });
+    });
+}
 
-showMainMenu()
+function askForCreditCardInstallments(total) {
+    // Definimos um máximo para a validação
+    const maxInstallments = 12;
+    
+    rl.question(`\nEm quantas parcelas (1 a ${maxInstallments})? `, (input) => {
+        const installments = Number(input);
+
+        // --- Estruturado: Validação de Condição ---
+        if (isNaN(installments) || installments < 1 || installments > maxInstallments) {
+            console.log(`>> Número de parcelas inválido. Mínimo 1, Máximo ${maxInstallments}.`);
+            return askForCreditCardInstallments(total); // Recursividade para tentar de novo
+        }
+        
+        const paymentProcessor = new CreditCardPayment(total, installments);
+
+        try {
+            // --- OO: Chamada Polimórfica ---
+            paymentProcessor.process();
+            console.log("Compra finalizada com sucesso!");
+            rl.close();
+        } catch (e) {
+            console.log("Erro no processamento: " + e.message);
+            rl.close();
+        }
+    });
+}
+
+function checkout() {
+    const total = parseFloat(myCart.calculateTotal());
+    
+    if (total === 0) {
+        console.log("Carrinho vazio.");
+        return showMainMenu();
+    }
+
+    console.log(`\n=== PAGAMENTO ===\nTotal: R$ ${total.toFixed(2)}`);
+    rl.question('[1] Cartão de Crédito\n[2] Pix\nEscolha: ', (opt) => {
+        
+        // --- Estruturado: Uso do Switch/Case (Obrigatório no requisito) ---
+        switch (opt) {
+            case '1':
+                // Se for Cartão, chama a função para perguntar as parcelas
+                return askForCreditCardInstallments(total); 
+            
+            case '2':
+                // Se for Pix, cria o objeto e processa imediatamente
+                const paymentProcessor = new PixPayment(total);
+                try {
+                    // --- OO: Chamada Polimórfica ---
+                    paymentProcessor.process(); 
+                    console.log("Compra finalizada com sucesso!");
+                    rl.close();
+                } catch (e) {
+                    console.log("Erro no processamento: " + e.message);
+                    rl.close();
+                }
+                break; // Sai do switch
+            
+            default:
+                console.log(">> Opção de pagamento inválida.");
+                return checkout(); // Tenta o pagamento de novo
+        }
+    });
+}
+
+// Inicia o programa
+showMainMenu();
