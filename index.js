@@ -1,7 +1,7 @@
 // O require é uma função nativa do js responsável por importar um arquivo ou função para o documento atual
 const data = require('./db/products.json') // Importamos o arquivo json e o salvamos em data
 const readline = require('readline') // Readline é um módulo de Node.js usado para lidar com input e output via terminal em aplicações JS
-const { listMovies, movieDetails, movieCost } = require('./src/estruturado/functions')
+const { listMovies, movieDetails, movieCost, listSnacks, snacksCost } = require('./src/estruturado/functions')
 
 // Habilita as interações via terminal
 const rl = readline.createInterface({
@@ -37,8 +37,33 @@ rl.question(
                                     console.log(`meias compradas: ${halfprice}`)
 
                                     // 6. Exibe o valor total de entradas
-                                    console.log(`Preço do cinema ${movieCost(data["movies"][movie-1].price, Number(fullprice), Number(halfprice))}`)
-                                    rl.close()
+                                    const totalTickets = movieCost(data["movies"][movie-1].price, Number(fullprice), Number(halfprice))
+                                    console.log(`Preço do cinema ${totalTickets}`)
+                                    
+                                    // Mostra a lista de snacks
+                                    console.log(listSnacks(data)) 
+                                    
+                                    rl.question('Informe o número do lanche desejado: ', 
+                                        (snackIndex) => {
+                                            // Pega o objeto do lanche (lembrando do índice -1)
+                                            const lancheSelecionado = data.snacks[snackIndex - 1]
+
+                                            rl.question(`Quantas unidades de ${lancheSelecionado.type} você deseja? `,
+                                                (qtdLanche) => {
+                                                    // 3. Calcula o lanche
+                                                    const totalLanche = snacksCost(lancheSelecionado.price, Number(qtdLanche))
+                                                    console.log(`Subtotal Lanche: R$ ${totalLanche.toFixed(2)}`)
+
+                                                    // 4. Grand Finale: O Total Geral
+                                                    const totalGeral = totalTickets + totalLanche
+                                                    console.log(`\n=== TOTAL A PAGAR: R$ ${totalGeral.toFixed(2)} ===`)
+                                                    console.log("Obrigado pela preferência!")
+                                                    
+                                                    rl.close()
+                                                }
+                                            )
+                                        }
+                                    )
 
                                 }
                             )

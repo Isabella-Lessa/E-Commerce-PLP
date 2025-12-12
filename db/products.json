@@ -2,6 +2,15 @@
     "movies": [
         {
             "category": "movie",
+            "name": "O Senhor dos Aneis: O Retorno do Rei",
+            "description": "Gandalf e Aragorn lideram o Mundo dos Homens contra o exército de Sauron para desviar o olhar de Frodo e Sam quando eles se aproximam á Montanha da Perdição com o Um Anel.",
+            "genre": "epic fantasy",
+            "duration": 201,
+            "price": 30.00,
+            "in_stock": 100
+        },
+        {
+            "category": "movie",
             "name": "O Senhor dos Aneis: As Duas Torres",
             "description": "Enquanto Frodo e Sam estão perto de Mordor com a ajuda de Gollum, a divida comunhão luta contra Saruman e os Isengards.",
             "genre": "epic fantasy",
@@ -20,14 +29,14 @@
         }
     ],
 
-    "junkfood": [
+    "snacks": [
         {
-            "category": "junkfood",
+            "category": "snacks",
             "type": "Pipoca",
-            "price": 10.90
+            "price": 14.90
         },
         {
-            "category": "junkfood",
+            "category": "snacks",
             "type": "Refrigerante",
             "price": 6.90
         }
