@@ -9,7 +9,7 @@ class Cart {
 
     calculateTotal() {
         const total = this.items.reduce((acc, item) => acc + item.product.cost(item.quantity), 0)
-        return total
+        return total.toFixed(2)
     }
 }
 

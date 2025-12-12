@@ -1,7 +1,35 @@
 // O require é uma função nativa do js responsável por importar um arquivo ou função para o documento atual
 const data = require('./db/products.json') // Importamos o arquivo json e o salvamos em data
 const readline = require('readline') // Readline é um módulo de Node.js usado para lidar com input e output via terminal em aplicações JS
+// A ser apagado:
 const { listMovies, movieDetails, movieCost, listSnacks, snacksCost } = require('./src/estruturado/functions')
+
+// Refatoração do código para usar as classes
+const Cart = require('./src/OO/Cart')
+const CartItem = require('./src/OO/CartItem')
+const Snack = require('./src/OO/Snack')
+const Movie = require('./src/OO/Movie')
+
+// Percorre a lista de filmes e cria um objeto Movie com os dados de cada filme da lista
+const movies = data.movies.map(movie => new Movie(
+    movie.category,
+    movie.name,
+    movie.description,
+    movie.price,
+    movie.stock,
+    movie.genre,
+    movie.duration
+))
+
+// Percorre a lista de lanches e cria um objeto Snack com os dados de cada lanche da lista
+const snacks = data.snacks.map(snack => new Snack(
+    snack.category,
+    snack.name,
+    snack.description,
+    snack.price,
+    snack.stock,
+    snack.type
+))
 
 // Habilita as interações via terminal
 const rl = readline.createInterface({
@@ -9,70 +37,43 @@ const rl = readline.createInterface({
     output: process.stdout // define o terminal como saída
 })
 
+
+const myCart = new Cart()
+
 rl.question(
     // 1. Escolhe o filme
-    `${listMovies(data)}\nInforme o número da opção desejada: `,
+    `${movies.map((movie, current) => `[${current+1}] - ${movie.name}\n`, 0).join('')}\nEscolha o número do filme desejado: `,
     
-    (movie) => {
-            console.log(`Você escolheu o filme ${(data["movies"][movie-1].name).toUpperCase()}`)
-            
-            // 2. Exibe os detalhes do filme
-            movieDetails(data["movies"][movie-1])
+    (inputMovie) => {
+        // 2. Exibe detalhes do filme
+        const selectedMovie = movies[inputMovie-1]
+        console.log(`\n\nVocê escolheu o filme ${selectedMovie.name}\n
+        ${selectedMovie.description}\n
+        ${selectedMovie.genre}\n
+        ${selectedMovie.duration} minutos\n
+        Assentos disponíveis: ${selectedMovie.stock}\n
+        Ingresso: R$${selectedMovie.price}`)
 
-            // 3. Pergunta a sessão
-            rl.question(
+        // 3. Pergunta a sessão
+        rl.question(
 
-                '\nInforme o número da sessão desejada: ',
-                (session) => {
-                    console.log(`\nSessão escolhida: ${session}`)
- 
-                    // 4. Pergunta a quantidade de inteiras
-                    rl.question('\nInteira: R$30,00 | Meia: R$15,00\nQuantas inteiras você deseja? ',
-                        (fullprice) => {
-                            console.log(`inteiras compradas: ${fullprice}`)
+            '\nInforme o número da sessão desejada: ',
+            (inputSession) => {
 
-                            // 5. Quantidade de meias
-                            rl.question('\nInteira: R$30,00 | Meia: R$15,00\nQuantas meias você deseja? ',
-                                (halfprice) => {
-                                    console.log(`meias compradas: ${halfprice}`)
-
-                                    // 6. Exibe o valor total de entradas
-                                    const totalTickets = movieCost(data["movies"][movie-1].price, Number(fullprice), Number(halfprice))
-                                    console.log(`Preço do cinema ${totalTickets}`)
-                                    
-                                    // Mostra a lista de snacks
-                                    console.log(listSnacks(data)) 
-                                    
-                                    rl.question('Informe o número do lanche desejado: ', 
-                                        (snackIndex) => {
-                                            // Pega o objeto do lanche (lembrando do índice -1)
-                                            const lancheSelecionado = data.snacks[snackIndex - 1]
-
-                                            rl.question(`Quantas unidades de ${lancheSelecionado.type} você deseja? `,
-                                                (qtdLanche) => {
-                                                    // 3. Calcula o lanche
-                                                    const totalLanche = snacksCost(lancheSelecionado.price, Number(qtdLanche))
-                                                    console.log(`Subtotal Lanche: R$ ${totalLanche.toFixed(2)}`)
-
-                                                    // 4. Grand Finale: O Total Geral
-                                                    const totalGeral = totalTickets + totalLanche
-                                                    console.log(`\n=== TOTAL A PAGAR: R$ ${totalGeral.toFixed(2)} ===`)
-                                                    console.log("Obrigado pela preferência!")
-                                                    
-                                                    rl.close()
-                                                }
+                // 4. Pergunta a quantidade de ingressos
+                rl.question('\Ingresso: R$30,00 \nQuantos ingressos você deseja? ',
+                    (inputTicket) => {
+                        const movie = new CartItem(selectedMovie, inputTicket)
+                        myCart.add(movie)
+                        console.log(`\n=== TOTAL A PAGAR: R$ ${myCart.calculateTotal()} ===`)
+                        console.log("Obrigado pela preferência!")
+                    
+                        rl.close()
+                }
                                             )
                                         }
                                     )
 
                                 }
                             )
-                        }
-                    )
-
-                }
-
-            )
-        }
-)
 

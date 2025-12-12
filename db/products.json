@@ -16,7 +16,7 @@
             "genre": "epic fantasy",
             "duration": 179,
             "price": 30.00,
-            "in_stock": 100
+            "stock": 100
         },
         {
             "category": "movie",
@@ -25,7 +25,7 @@
             "genre": "epic fantasy",
             "duration": 178,
             "price": 30.00,
-            "in_stock": 100
+            "stock": 100
         }
     ],
 

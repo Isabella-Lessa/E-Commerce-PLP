@@ -38,3 +38,5 @@ myCart.add(snack)
 
 // Soma o valor total dos itens no carrinho
 console.log(myCart.calculateTotal())
+
+module.exports = { movies, snacks }
