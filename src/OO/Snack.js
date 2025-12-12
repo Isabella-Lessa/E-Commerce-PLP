@@ -6,12 +6,6 @@ class Snack extends Product {
     }
 
     cost(quantity) {
-        if (this.size.toUpperCase() === "P") {
-            return quantity * (this.price * 0.95) // O produto de tamanho P tem 05% de desconto
-        } else if (this.size.toUpperCase() === "G") {
-            return quantity * (this.price * 1.1) // O produto de tamanho G é 10% mais caro
-        } else {
-            return quantity * this.price
-        }
+        return quantity * this.price
     }
 }
