@@ -1,3 +1,5 @@
+const Product = require("./Product")
+
 // A classe Movie Extende a classe de Product
 class Movie extends Product {
     constructor(category, name, description, price, stock, genre, duration) {
@@ -11,3 +13,5 @@ class Movie extends Product {
         return (this.price * quantity)
     }
 }
+
+module.exports = Movie

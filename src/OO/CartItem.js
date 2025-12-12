@@ -1,8 +1,7 @@
 class CartItem {
-    constructor(product, quantity, ticketType) {
+    constructor(product, quantity) {
         this.product = product
         this.quantity = quantity
-        this.ticketType = ticketType
     }
 }
 
