@@ -1,3 +1,5 @@
+const Product = require("./Product")
+
 // A classe Movie Extende a classe de Product
 class Movie extends Product {
     constructor(category, name, description, price, stock, genre, duration) {
@@ -6,8 +8,10 @@ class Movie extends Product {
         this.duration = duration // tempo em minutos
     }
 
-    cost(ticket_type, quantity) {
+    cost(quantity) {
         // Polimorfismo: sobrescrevemos o método para aceitar a lógica de Meia Entrada
-        return ticket_type === 'INTEIRA' ? (this.price * quantity) : ((this.price/2) * quantity)
+        return (this.price * quantity)
     }
 }
+
+module.exports = Movie

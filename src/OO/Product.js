@@ -11,3 +11,5 @@ class Product {
         return this.price
     }
 }
+
+module.exports = Product
