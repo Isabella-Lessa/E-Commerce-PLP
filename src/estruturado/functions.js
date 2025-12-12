@@ -1,5 +1,4 @@
-
-// A função recebe o objeto completo de dados
+// A função recebe o objeto completo de dados (filmes e lanches)
 function listMovies (data){
     let catalog = ""
     console.log("Confira o catálogo abaixo:")
@@ -24,4 +23,21 @@ function movieCost(price, fullTicket, halfTicket) {
     return (price * fullTicket) + ((price/2)*halfTicket)
 }
 
-module.exports = { listMovies, movieDetails, movieCost }
+function listSnacks(data) {
+    let menu = ""
+    console.log("Confira nossas opções abaixo:")
+
+    // Segue a mesma lógica de listMovies, mas percorrendo a lista de snacks
+    for (let index = 0; index < data["snacks"].length; index++) {
+        menu += `\n[${index+1}] ${data["snacks"][index].type} - R$${data["snacks"][index].price}\n`
+        
+    }
+
+    return menu
+}
+
+function snacksCost(price, quantity) {
+    return price * quantity
+}
+
+module.exports = { listMovies, movieDetails, movieCost, listSnacks, snacksCost }
