@@ -11,7 +11,7 @@ class Payment {
 
 class CreditCardPayment extends Payment {
     constructor(value, installments = 1) { // Adicionamos 'installments' (parcelas)
-        super(value);
+        super(value); // O super chama o construtor da classe pai (Payment)
         this.installments = installments;
         this.feeRate = 0.05; // 5% de juros se parcelar acima de 1x
     }
